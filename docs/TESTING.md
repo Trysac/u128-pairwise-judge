@@ -1,20 +1,17 @@
 # Testing
 
-## Running
+## Coverage
 
-```sh
-uv run pytest --cov=pairwise_judge   # tests with coverage report
-uv run python scripts/check.py      # every gate, as CI and the factory run it
-```
+- The library maintains branch coverage > 80%.
+- Tests are deterministic, avoiding network dependencies.
 
-## Policy
+## Test Suite
 
-- Branch coverage of `src/pairwise_judge` must stay at or above 80 %; the gate fails below it.
-- Tests exercise the public API (`import pairwise_judge`) and assert every observable effect:
-  return values, raised exceptions and their messages.
-- Each bug fix starts with a failing test that reproduces it.
-- Tests are deterministic: no network, no wall clock, no dependence on test order.
-
-## Layout
-
-`tests/test_<module>.py` mirrors each public module. Shared fixtures go in `tests/conftest.py`.
+- `tests/test_pairwise_judge.py`: Validates the acceptance criteria, including:
+    - `test_acceptance_item_1_recorded_llm_swapped_verdicts`: Verifies debiasing logic.
+    - `test_acceptance_item_2_verdicts_mapping`: Tests interpretation of various verdict combinations.
+    - `test_acceptance_item_3_parse_verdict`: Exercises strict regex parsing.
+    - `test_acceptance_item_4_message_escaping`: Ensures XML tags are safely escaped.
+    - `test_acceptance_item_5_summarizer`: Tests the math behind win-rate and consistency calculations.
+    - `test_acceptance_item_6_limits_and_exceptions`: Verifies input length constraints and error propagation.
+    - `test_acceptance_item_7_on_event_sentinel`: Confirms telemetry capturing and exclusion of input text.
