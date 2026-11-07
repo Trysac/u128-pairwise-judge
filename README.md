@@ -1,48 +1,43 @@
 # pairwise-judge
 
-[![PyPI version](https://img.shields.io/pypi/v/trysac-pairwise-judge)](https://pypi.org/project/trysac-pairwise-judge/)
-[![License: MIT](https://img.shields.io/pypi/l/trysac-pairwise-judge)](LICENSE)
-[![CI](https://github.com/Trysac/u128-pairwise-judge/actions/workflows/ci.yml/badge.svg)](https://github.com/Trysac/u128-pairwise-judge/actions/workflows/ci.yml)
+Pairwise LLM-as-judge comparing two responses in both orders to cancel position bias, with strict verdict parsing and win-rate summaries.
 
-Pairwise LLM-as-judge comparing two responses in both orders to cancel position bias, with strict verdict parsing and win-rate summaries
+## Why pairwise-judge?
 
-## Problem
+Pairwise LLM judges suffer from position bias: they systematically prefer whichever answer is presented first. In addition, loose regex verdict parsers can misinterpret negative statements as votes. `pairwise-judge` performs two-pass evaluation with swapped order and strict verdict parsing to ensure reliable results.
 
-Describe in two or three sentences the concrete problem this utility solves, who hits it, and what
-they do today without it. Replace this paragraph when the first real feature lands.
+## Installation
 
-## Install
-
-```sh
+```bash
 pip install trysac-pairwise-judge
-# or
-uv add trysac-pairwise-judge
 ```
-
-Requires Python 3.10 or newer. No runtime dependencies.
 
 ## Usage
 
 ```python
-import pairwise_judge
+from pairwise_judge import RecordedLLM, compare, summarize
 
-# normalize() trims surrounding whitespace and lower-cases the text.
-print(pairwise_judge.normalize("  Hello World "))  # -> "hello world"
+# Provide replies for both pass 1 (A,B) and pass 2 (B,A)
+llm = RecordedLLM(["Reasoning...\nVERDICT: A", "VERDICT: B"])
+result = compare(llm, "What is 2+2?", "4", "5")
 
-# Blank input is rejected explicitly instead of returning an empty string.
-try:
-    pairwise_judge.normalize("   ")
-except ValueError as exc:
-    print(f"rejected: {exc}")
+print(f"Winner: {result.winner}")
+summary = summarize([result])
+print(f"Win rate A: {summary.win_rate_a}, Consistency: {summary.consistency_rate}")
 ```
 
-## Documentation
+## Public API
 
-- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/decisions/)
-- [Testing](docs/TESTING.md) and [security](docs/SECURITY.md)
-- [Project record](docs/PROJECT.md) and [stack](docs/STACK.md)
-- [Changelog](CHANGELOG.md) and [contributing guide](CONTRIBUTING.md)
+- `compare(llm, question, a, b, *, max_tokens=512, max_chars=50_000, on_event=None) -> Comparison`: Performs two-pass evaluation to mitigate position bias.
+- `summarize(comparisons) -> Summary`: Aggregates results, treating ties and inconsistencies as 0.5 weights.
+- `build_messages(question, first, second, *, criteria=...) -> list[Message]`: Generates structured prompts with XML delimiters.
+- `parse_verdict(reply) -> Literal['A', 'B', 'TIE'] | None`: Validates strict verdict format.
+- `RecordedLLM(replies)`: Mock for deterministic testing.
+- `FakeLLM(fn)`: Mock utilizing a custom callback.
+- `JudgeError`: Raised for inputs exceeding `max_chars`.
 
-## License
+## Why not pointwise judges?
 
-[MIT](LICENSE) (c) 2026 Miguel Gomez
+Pointwise rubric judges require complex, hard-to-calibrate scoring guidelines. Swapped-order pairwise comparison is the industry standard for eliminating positional bias (Zheng et al., MT-Bench).
+
+See [Security](docs/SECURITY.md) for threat model and limits.

@@ -9,4 +9,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Implement pairwise-judge with swapped-order debiasing, strict verdict parsing, and summary statistics.
 - Initial project structure from the factory utility template.
