@@ -8,8 +8,10 @@ Pairwise LLM judges suffer from position bias: they systematically prefer whiche
 
 ## Installation
 
+Not published to PyPI yet. Install it from GitHub:
+
 ```bash
-pip install trysac-pairwise-judge
+pip install "git+https://github.com/Trysac/u128-pairwise-judge"
 ```
 
 ## Usage
